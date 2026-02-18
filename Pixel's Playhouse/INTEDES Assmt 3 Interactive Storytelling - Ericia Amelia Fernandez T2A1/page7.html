@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)https://fmscmd.com/xdlab/imda/iframe-template.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Cleanup</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --calm-blue: #0b1b2e;
+            --soft-blue: #112a45;
+            --ice: #d9f0ff;
+            --mint: #9af9c6;
+            --mint-strong: #4cf1a4;
+            --panel: rgba(9, 25, 43, 0.88);
+            --panel-border: rgba(110, 198, 255, 0.6);
+            --text: #e6f6ff;
+            --muted: #a3c0d8;
+            --gold: #f7c651;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #06101c;
+            font-family: "Share Tech Mono", monospace;
+            color: var(--text);
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 960px;
+            height: 540px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: url("page7-bg.png") no-repeat center/cover;
+        }
+
+        .cool-wash {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1), transparent 55%);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.55;
+            animation: white-pulse 4.5s ease-in-out infinite;
+        }
+
+        #particle-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: #2aff8f;
+            border-radius: 30%;
+            pointer-events: none;
+            filter: blur(0.5px);
+            box-shadow: 0 0 10px #2aff8f, 0 0 20px #2aff8f;
+            opacity: 0;
+            animation: floatParticle var(--duration) linear infinite;
+        }
+
+        .clipboard-hero {
+            position: absolute;
+            top: 50%;
+            right: -60px;
+            width: 600px;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-50%);
+            z-index: 5;
+            perspective: 900px;
+        }
+
+        .clipboard-hero img {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 18px rgba(90, 255, 190, 0.75));
+            transform-style: preserve-3d;
+            animation: clipboard-float-spin 7s ease-in-out infinite,
+                       clipboard-glow 2.8s ease-in-out infinite;
+        }
+
+        .clipboard-panel {
+            position: absolute;
+            left: 60px;
+            top: 24px;
+            width: 430px;
+            height: 492px;
+            padding: 18px;
+            background: rgba(10, 25, 44, 0.9);
+            border: 1px solid rgba(145, 210, 255, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(90, 190, 255, 0.25);
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .clipboard-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .clipboard-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ice);
+            letter-spacing: 0.5px;
+            font-family: "Share Tech", sans-serif;
+            text-align: left;
+        }
+
+        .clipboard-subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 2px;
+            font-family: "Share Tech Mono", monospace;
+            text-align: center;
+        }
+
+        .leak-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .leak-item {
+            position: relative;
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(18, 41, 68, 0.9);
+            border: 1px solid rgba(120, 200, 255, 0.45);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .leak-item:hover {
+            transform: translateY(-1px);
+            border-color: rgba(120, 255, 220, 0.7);
+        }
+
+        .leak-item img {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 0 4px rgba(150, 220, 255, 0.5));
+        }
+
+        .leak-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .leak-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f0fbff;
+            font-family: "Share Tech", sans-serif;
+        }
+
+        .leak-action {
+            font-size: 13px;
+            color: var(--muted);
+            font-family: "Share Tech Mono", monospace;
+        }
+
+        .leak-item::after {
+            content: "";
+            position: absolute;
+            left: -120%;
+            top: 0;
+            width: 120%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            opacity: 0;
+        }
+
+        .leak-item.scrubbed {
+            background: rgba(20, 66, 55, 0.9);
+            border-color: rgba(100, 255, 200, 0.7);
+            cursor: default;
+        }
+
+        .leak-item.scrubbed::after {
+            animation: scrub 0.55s ease;
+        }
+
+        .leak-item.scrubbed .leak-action {
+            color: #bafad6;
+        }
+
+        .leak-item.scrubbed .leak-title {
+            color: #dffff0;
+        }
+
+        .leak-item .scrub-tag {
+            position: absolute;
+            right: 12px;
+            top: 10px;
+            font-size: 11px;
+            font-family: "Share Tech Mono", monospace;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: 0.2s ease;
+        }
+
+        .leak-item.scrubbed .scrub-tag {
+            opacity: 1;
+            color: #9ff7c9;
+            transform: translateY(0);
+        }
+
+        .task-hint {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 4px;
+            font-family: "Share Tech Mono", monospace;
+            letter-spacing: 0.4px;
+        }
+
+        .scrub-launcher {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 7;
+            background: rgba(5, 18, 30, 0.55);
+            backdrop-filter: blur(2px);
+        }
+
+        .scrub-btn {
+            padding: 16px 26px;
+            font-size: 16px;
+            letter-spacing: 1px;
+            border-radius: 24px;
+            border: 2px solid #66ffb5;
+            background: rgba(12, 40, 30, 0.9);
+            color: #b7ffe1;
+            text-transform: uppercase;
+            font-family: "Share Tech", sans-serif;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(110, 255, 190, 0.6);
+            animation: scrub-pulse 1.6s ease-in-out infinite;
+        }
+
+        .loading-bar {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            right: 12px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(120, 220, 255, 0.6);
+            border-radius: 6px;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .loading-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #4ff2ff, #5bffb9);
+            box-shadow: 0 0 10px rgba(120, 255, 220, 0.8);
+        }
+
+        .loading-text {
+            position: absolute;
+            right: 12px;
+            top: 16px;
+            font-size: 11px;
+            color: #9ef5ff;
+            font-family: "Share Tech Mono", monospace;
+            opacity: 0;
+        }
+
+        .loading-bar.active {
+            opacity: 1;
+        }
+
+        .loading-bar.active .loading-fill {
+            animation: loading-fill 1.6s ease-out forwards;
+        }
+
+        .loading-bar.active + .loading-text {
+            opacity: 1;
+        }
+
+        .malware-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 18;
+            background: rgba(5, 12, 20, 0.55);
+            backdrop-filter: blur(1px);
+        }
+
+        .malware-modal.show {
+            display: flex;
+        }
+
+        .malware-overlay {
+            position: relative;
+            width: 620px;
+            height: 380px;
+            background: rgba(8, 20, 36, 0.96);
+            border: 1px solid rgba(130, 220, 255, 0.8);
+            border-radius: 18px;
+            flex-direction: column;
+            gap: 8px;
+            padding: 14px;
+            box-shadow: 0 0 30px rgba(90, 190, 255, 0.35);
+            display: flex;
+        }
+
+        .malware-overlay.show {
+            display: flex;
+            animation: fade-in 0.4s ease;
+        }
+
+        .malware-title {
+            font-family: "Share Tech", sans-serif;
+            font-size: 35px;
+            letter-spacing: 1px;
+            color: #9ff7ff;
+            text-transform: uppercase;
+            text-align: center;
+            font-weight:bold;
+        }
+
+        .malware-instruction {
+            font-size: 13px;
+            color: #c4e7ff;
+            text-align: center;
+            font-family: "Share Tech Mono", monospace;
+        }
+
+        .malware-banner {
+            margin: 4px auto 0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(76, 255, 170, 0.15);
+            border: 1px solid rgba(90, 255, 190, 0.6);
+            color: #7bffcf;
+            font-size: 12px;
+            letter-spacing: 1px;
+            font-family: "Share Tech", sans-serif;
+            text-transform: uppercase;
+            display: none;
+        }
+
+        .malware-banner.show {
+            display: inline-block;
+            animation: flash 0.6s ease-in-out 2;
+        }
+
+        .malware-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 4px;
+            flex: 1;
+        }
+
+        .malware-item {
+            position: relative;
+            background: rgba(14, 35, 60, 0.9);
+            border: 1px solid rgba(255, 80, 120, 0.6);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .malware-item img.icon {
+            width: 34px;
+            height: 34px;
+            filter: drop-shadow(0 0 8px rgba(255, 90, 120, 0.9));
+        }
+
+        .malware-item .label {
+            font-size: 12px;
+            color: #ffd1dc;
+            font-family: "Share Tech Mono", monospace;
+        }
+
+        .malware-item.clean {
+            border-color: rgba(80, 255, 190, 0.7);
+            background: rgba(10, 60, 45, 0.85);
+        }
+
+        .malware-item.clean img.icon {
+            filter: drop-shadow(0 0 10px rgba(120, 255, 200, 0.9));
+        }
+
+        .bug {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: url("spider-icon.png") no-repeat center/contain;
+            cursor: pointer;
+            animation: bug-jitter 0.6s steps(2) infinite,
+                       bug-crawl 3.2s linear infinite;
+        }
+
+        .bug.poof {
+            animation: poof 0.35s ease forwards;
+            pointer-events: none;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(120, 255, 200, 0.9), transparent 70%);
+            animation: sparkle 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+
+        .malware-overlay.fade-out {
+            animation: fade-out 0.6s ease forwards;
+        }
+
+        .victory-layer {
+            position: absolute;
+            inset: 0;
+            background: rgba(9, 25, 36, 0.95);
+            display: none;
+            z-index: 30;
+        }
+
+        .victory-layer.show {
+            display: block;
+        }
+
+        .pulse {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(190, 255, 230, 0.35), rgba(10, 25, 36, 0.95) 70%);
+            opacity: 0;
+        }
+
+        .pulse.active {
+            animation: calm-pulse 1.6s ease-in-out 2;
+        }
+
+        .victory-content {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            align-items: center;
+            padding: 30px 40px;
+        }
+
+        .badge-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .badge {
+            width: 190px;
+            height: auto;
+            animation: spin 4s linear infinite;
+            filter: drop-shadow(0 0 25px rgba(247, 198, 81, 0.7));
+        }
+
+        .badge-title {
+            font-size: 18px;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: "Share Tech", sans-serif;
+        }
+
+        .report-card {
+            background: rgba(9, 30, 44, 0.92);
+            border: 1px solid rgba(150, 230, 255, 0.55);
+            border-radius: 16px;
+            padding: 20px 22px;
+            box-shadow: 0 0 30px rgba(90, 190, 255, 0.25);
+            max-height: 480px;
+            overflow: auto;
+        }
+
+        .report-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #7effb8;
+            margin-bottom: 10px;
+            text-align: center;
+            font-family: "Share Tech", sans-serif;
+        }
+
+        .report-list {
+            font-size: 14px;
+            line-height: 1.35;
+            color: #d9ecf7;
+            margin: 0;
+            padding-left: 18px;
+            font-family: "Share Tech Mono", monospace;
+        }
+
+        .report-list li {
+            margin-bottom: 8px;
+        }
+
+        .report-list strong {
+            color: #ffffff;
+        }
+
+        .report-highlight {
+            color: #4ff2ff;
+        }
+
+        .report-list strong.report-highlight {
+            color: #4ff2ff;
+        }
+
+        .tip-modal .modal-box {
+            width: 520px;
+        }
+
+        .tip-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: "Share Tech", sans-serif;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #ffd772;
+            margin-bottom: 10px;
+        }
+
+        .tip-header {
+            text-align: center;
+        }
+
+        .tip-title img {
+            width: 34px;
+            height: 34px;
+        }
+
+        .tip-content {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+            margin-bottom: 14px;
+        }
+
+        .tip-content img {
+            width: 34px;
+            height: 34px;
+        }
+
+        .tip-text {
+            font-size: 17px;
+            color: #dbfaff;
+            font-family: "Share Tech Mono", monospace;
+            text-align:left;
+        }
+
+        .reset-btn {
+            margin-top: 12px;
+            padding: 10px 24px;
+            border-radius: 18px;
+            border: 1px solid rgba(150, 230, 255, 0.6);
+            background: rgba(20, 60, 90, 0.9);
+            color: #e7fbff;
+            font-family: "Share Tech", sans-serif;
+            letter-spacing: 1.2px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s ease;
+            font-size: 16px;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(6, 16, 26, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 40;
+        }
+
+        .modal-box {
+            width: 520px;
+            background: rgba(10, 28, 44, 0.95);
+            border: 1px solid rgba(140, 220, 255, 0.7);
+            border-radius: 16px;
+            padding: 20px 22px 18px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(90, 190, 255, 0.4);
+            position: relative;
+        }
+
+        .modal-title {
+            font-family: "Share Tech", sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--mint);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .modal-text {
+            font-size: 18px;
+            line-height: 1.35;
+            color: var(--ice);
+            text-align: left;
+            margin-bottom: 16px;
+            font-family: "Share Tech Mono", monospace;
+        }
+
+        .start-btn {
+            padding: 10px 28px;
+            border-radius: 18px;
+            border: 1px solid rgba(150, 230, 255, 0.6);
+            background: rgba(20, 60, 90, 0.9);
+            color: #e7fbff;
+            font-family: "Share Tech", sans-serif;
+            letter-spacing: 1.2px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s ease;
+            font-size: 16px;
+        }
+
+        .start-btn:hover {
+            border-color: rgba(130, 255, 220, 0.9);
+            color: #b6ffe3;
+            box-shadow: 0 0 15px rgba(130, 255, 220, 0.4);
+        }
+
+        .damage-icon {
+            position: absolute;
+            right: 22px;
+            bottom: 14px;
+            width: 110px;
+            height: auto;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 10px rgba(120, 220, 255, 0.7));
+            pointer-events: none;
+            animation: damage-spin 6s linear infinite;
+        }
+
+        .floating-clipboard {
+            display: none;
+        }
+
+        .reset-btn:hover {
+            border-color: rgba(130, 255, 220, 0.9);
+            color: #b6ffe3;
+            box-shadow: 0 0 15px rgba(130, 255, 220, 0.4);
+        }
+
+        @keyframes scrub {
+            0% { left: -120%; opacity: 0.9; }
+            40% { opacity: 1; }
+            100% { left: 120%; opacity: 0; }
+        }
+
+        @keyframes white-pulse {
+            0% { opacity: 0.35; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0.35; }
+        }
+
+        @keyframes calm-pulse {
+            0% { opacity: 0; }
+            40% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            20%, 60% { opacity: 1; }
+            100% { transform: translateY(var(--moveY)) translateX(var(--moveX)); opacity: 0; }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes clipboard-float-spin {
+            0% { transform: translateY(0) rotateY(0deg); }
+            40% { transform: translateY(-10px) rotateY(0deg); }
+            60% { transform: translateY(-6px) rotateY(0deg); }
+            100% { transform: translateY(0) rotateY(360deg); }
+        }
+
+        @keyframes clipboard-glow {
+            0% { filter: drop-shadow(0 0 10px rgba(90, 255, 190, 0.4)); }
+            50% { filter: drop-shadow(0 0 22px rgba(120, 255, 200, 0.9)); }
+            100% { filter: drop-shadow(0 0 10px rgba(90, 255, 190, 0.4)); }
+        }
+
+        @keyframes scrub-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 18px rgba(110, 255, 190, 0.5); }
+            50% { transform: scale(1.04); box-shadow: 0 0 28px rgba(110, 255, 190, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 18px rgba(110, 255, 190, 0.5); }
+        }
+
+        @keyframes loading-fill {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+
+        @keyframes bug-jitter {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(1px, -1px); }
+            100% { transform: translate(-1px, 1px); }
+        }
+
+        @keyframes bug-crawl {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(8px, -6px); }
+            50% { transform: translate(-6px, 10px); }
+            75% { transform: translate(6px, 6px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        @keyframes poof {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        @keyframes sparkle {
+            0% { transform: scale(0.5); opacity: 0.9; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes damage-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 980px) {
+            #game-container {
+                transform: scale(1);
+                transform-origin: top center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="cool-wash"></div>
+        <div id="particle-layer"></div>
+
+        <div class="modal-overlay" id="start-modal">
+            <div class="modal-box">
+                <div class="modal-title">Damage Control Mode</div>
+                <div class="modal-text">
+                    You escaped Pixel… but the data you shared is still out there.<br><br>To fully secure your identity,
+                    you need to clean up the trail.<br><br>What’s your first step?
+                </div>
+                <button class="start-btn" id="start-btn" type="button">Start</button>
+                <img src="damagecontrol-icon.png" alt="Damage Control" class="damage-icon">
+            </div>
+        </div>
+
+        <div class="clipboard-panel">
+            <div class="loading-bar" id="loading-bar">
+                <div class="loading-fill" id="loading-fill"></div>
+            </div>
+            <div class="loading-text" id="loading-text">SCANNING...</div>
+
+            <div class="scrub-launcher" id="scrub-launcher">
+                <button class="scrub-btn" id="scrub-btn" type="button">Start System Scrub</button>
+            </div>
+
+            <div class="clipboard-header">
+                <div>
+                    <div class="clipboard-title">SCRUB THE TRAIL</div>
+                    <div class="clipboard-subtitle">Tap each item to sanitize it.</div>
+                </div>
+            </div>
+
+            <div class="leak-list">
+                <button class="leak-item" data-key="selfie" type="button">
+                    <img src="camera-icon.png" alt="Camera">
+                    <div class="leak-text">
+                        <div class="leak-title">Selfie Image</div>
+                        <div class="leak-action">Revoke App Permissions</div>
+                    </div>
+                    <div class="scrub-tag">Sanitized</div>
+                </button>
+                <button class="leak-item" data-key="school" type="button">
+                    <img src="school-icon.png" alt="School">
+                    <div class="leak-text">
+                        <div class="leak-title">School Name</div>
+                        <div class="leak-action">Update Privacy Settings</div>
+                    </div>
+                    <div class="scrub-tag">Sanitized</div>
+                </button>
+                <button class="leak-item" data-key="location" type="button">
+                    <img src="house-icon.png" alt="Location">
+                    <div class="leak-text">
+                        <div class="leak-title">Location Tag</div>
+                        <div class="leak-action">Turn Off GPS</div>
+                    </div>
+                    <div class="scrub-tag">Sanitized</div>
+                </button>
+                <button class="leak-item" data-key="shield" type="button">
+                    <img src="shield-icon.png" alt="Shield">
+                    <div class="leak-text">
+                        <div class="leak-title">Update Passwords & Privacy</div>
+                        <div class="leak-action">Change Passwords &amp; Privacy Settings</div>
+                    </div>
+                    <div class="scrub-tag">Sanitized</div>
+                </button>
+                <button class="leak-item" data-key="megaphone" type="button">
+                    <img src="megaphone-icon.png" alt="Megaphone">
+                    <div class="leak-text">
+                        <div class="leak-title">Speak Up & Report</div>
+                        <div class="leak-action">Tell a Trusted Adult / Report the App</div>
+                    </div>
+                    <div class="scrub-tag">Sanitized</div>
+                </button>
+                <button class="leak-item" data-key="trash" type="button">
+                    <img src="trash-icon.png" alt="Trash">
+                    <div class="leak-text">
+                        <div class="leak-title">Clear Your Digital Trail</div>
+                        <div class="leak-action">Delete Chat History &amp; Cache</div>
+                    </div>
+                    <div class="scrub-tag">Sanitized</div>
+                </button>
+            </div>
+
+            <div class="task-hint">These steps clean the trail. They are best practices, not choices.</div>
+        </div>
+
+        <div class="clipboard-hero">
+            <img src="clipboard-icon.png" alt="Clipboard">
+        </div>
+
+        <div class="malware-modal" id="malware-modal">
+            <div class="malware-overlay" id="malware-overlay">
+                <div class="malware-title">Malware Sweep</div>
+            <div class="malware-instruction">Tap the bugs to scrub them away.</div>
+                <div class="malware-banner" id="malware-banner">Threats Neutralized</div>
+                <div class="malware-grid">
+                    <div class="malware-item" data-item="selfie">
+                        <img class="icon" src="camera-icon.png" alt="Selfie">
+                        <div class="label">Selfie Image</div>
+                    </div>
+                    <div class="malware-item" data-item="school">
+                        <img class="icon" src="school-icon.png" alt="School">
+                        <div class="label">School Name</div>
+                    </div>
+                    <div class="malware-item" data-item="location">
+                        <img class="icon" src="house-icon.png" alt="Location">
+                        <div class="label">Location Tag</div>
+                    </div>
+                    <div class="malware-item" data-item="shield">
+                        <img class="icon" src="shield-icon.png" alt="Shield">
+                        <div class="label">Passwords</div>
+                    </div>
+                    <div class="malware-item" data-item="megaphone">
+                        <img class="icon" src="megaphone-icon.png" alt="Megaphone">
+                        <div class="label">Secrets</div>
+                    </div>
+                    <div class="malware-item" data-item="trash">
+                        <img class="icon" src="trash-icon.png" alt="Trash">
+                        <div class="label">Digital Trail</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="victory-layer" id="victory-layer">
+            <div class="pulse" id="pulse"></div>
+            <div class="victory-content">
+                <div class="badge-panel">
+                    <img src="digitalsafetybadge-icon.png" alt="Digital Safety Badge" class="badge">
+                    <div class="badge-title">Digital Safety Badge</div>
+                    <button class="reset-btn" id="continue-btn" type="button">Continue</button>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-title">THINK BEFORE YOU SHARE!</div>
+                    <ol class="report-list">
+                        <li><strong class="report-highlight">AI can mimic real people:</strong> Strangers could use your photos, videos, or messages to create fake content that looks just like you. This could be shared online without your consent.</li>
+                        <li><strong class="report-highlight">Your digital footprint matters:</strong> Even small pieces of info like your hobbies, friends, or school can be used to track you or guess private details.</li>
+                        <li><strong class="report-highlight">Identity theft and scams are real:</strong> Fake AI-generated content can trick people into giving away passwords, money, or other sensitive info.</li>
+                        <li><strong class="report-highlight">Deepfakes and misinformation:</strong> AI can create videos or messages that make it seem like someone said or did something they didn’t. This can damage reputations or cause misunderstandings.</li>
+                        <li>
+                            <strong class="report-highlight">Protect yourself:</strong>
+                            <ul>
+                                <li>Don’t share personal info with strangers online.</li>
+                                <li>Keep photos and messages private.</li>
+                                <li>Review your privacy settings often.</li>
+                                <li>Report suspicious accounts or content.</li>
+                                <li>Talk to a trusted adult if something feels off.</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay tip-modal" id="tip-modal" style="display:none;">
+            <div class="modal-box">
+                <div class="tip-header">
+                    <div class="tip-title">
+                        <img src="alert-icon-yellow.png" alt="Alert">
+                        Educational Tip
+                    </div>
+                </div>
+                <div class="tip-content">
+                    <div class="tip-text">
+                        Escaping is step one. Cleaning up is step two.<br><br>If you’ve shared something sensitive, telling a parent or teacher isn’t “getting in trouble” —it’s getting help to lock your digital door.
+                    </div>
+                </div>
+                <button class="reset-btn" id="reset-btn" type="button">Reset</button>
+            </div>
+        </div>
+
+        <audio id="scrub-sfx" src="ding.mp3" preload="auto"></audio>
+        <audio id="success-sfx" src="success-sfx.mp3" preload="auto"></audio>
+        <audio id="scan-sfx" src="scan-sfx.mp3" preload="auto"></audio>
+    </div>
+
+    <script>
+        const leakItems = Array.from(document.querySelectorAll('.leak-item'));
+        const victoryLayer = document.getElementById('victory-layer');
+        const pulse = document.getElementById('pulse');
+        const scrubSfx = document.getElementById('scrub-sfx');
+        const successSfx = document.getElementById('success-sfx');
+        const scanSfx = document.getElementById('scan-sfx');
+        const continueBtn = document.getElementById('continue-btn');
+        const tipModal = document.getElementById('tip-modal');
+        const resetBtn = document.getElementById('reset-btn');
+        const startModal = document.getElementById('start-modal');
+        const startBtn = document.getElementById('start-btn');
+        const particleLayer = document.getElementById('particle-layer');
+        const scrubLauncher = document.getElementById('scrub-launcher');
+        const scrubBtn = document.getElementById('scrub-btn');
+        const loadingBar = document.getElementById('loading-bar');
+        const malwareModal = document.getElementById('malware-modal');
+        const malwareOverlay = document.getElementById('malware-overlay');
+        const malwareBanner = document.getElementById('malware-banner');
+
+        const sanitized = new Set();
+        let remainingBugs = 0;
+
+        const playSfx = (audio) => {
+            if (!audio) return;
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+        };
+
+        const createParticles = () => {
+            const total = 40;
+            for (let i = 0; i < total; i += 1) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                const size = Math.random() * 5 + 3;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.setProperty('--moveX', `${((Math.random() - 0.5) * 200).toFixed(0)}px`);
+                particle.style.setProperty('--moveY', `${(-(Math.random() * 200 + 100)).toFixed(0)}px`);
+                particle.style.setProperty('--duration', `${(Math.random() * 4 + 4).toFixed(2)}s`);
+                particle.style.animationDelay = `${(Math.random() * 5).toFixed(2)}s`;
+
+                particleLayer.appendChild(particle);
+            }
+        };
+
+        createParticles();
+
+        startBtn.addEventListener('click', () => {
+            startModal.style.display = 'none';
+            scrubLauncher.style.display = 'flex';
+        });
+
+        const spawnBugs = () => {
+            const items = Array.from(document.querySelectorAll('.malware-item'));
+            remainingBugs = 0;
+            items.forEach((item) => {
+                const bugCount = 6;
+                for (let i = 0; i < bugCount; i += 1) {
+                    const bug = document.createElement('div');
+                    bug.className = 'bug';
+                    const left = 6 + Math.random() * 70;
+                    const top = 6 + Math.random() * 60;
+                    bug.style.left = `${left}%`;
+                    bug.style.top = `${top}%`;
+                    bug.style.animationDuration = `${(2.6 + Math.random() * 3).toFixed(2)}s`;
+                    item.appendChild(bug);
+                    remainingBugs += 1;
+                }
+            });
+        };
+
+        const addSparkle = (parent, x, y) => {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = `${x - 6}px`;
+            sparkle.style.top = `${y - 6}px`;
+            parent.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 500);
+        };
+
+        scrubBtn.addEventListener('click', () => {
+            scrubLauncher.style.display = 'none';
+            loadingBar.classList.add('active');
+            playSfx(scanSfx);
+            setTimeout(() => {
+                loadingBar.classList.remove('active');
+                scanSfx.pause();
+                scanSfx.currentTime = 0;
+                malwareModal.classList.add('show');
+                spawnBugs();
+            }, 1600);
+        });
+
+        malwareOverlay.addEventListener('click', (event) => {
+            const bug = event.target.closest('.bug');
+            if (!bug) return;
+            const item = bug.closest('.malware-item');
+            const rect = bug.getBoundingClientRect();
+            const parentRect = item.getBoundingClientRect();
+            bug.classList.add('poof');
+            addSparkle(item, rect.left - parentRect.left + rect.width / 2, rect.top - parentRect.top + rect.height / 2);
+            playSfx(scrubSfx);
+            setTimeout(() => bug.remove(), 300);
+            remainingBugs -= 1;
+            if (item.querySelectorAll('.bug').length === 1) {
+                item.classList.add('clean');
+            }
+            if (remainingBugs <= 0) {
+                malwareBanner.classList.add('show');
+                setTimeout(() => {
+                    malwareOverlay.classList.add('fade-out');
+                    setTimeout(() => {
+                        malwareModal.classList.remove('show');
+                        malwareOverlay.classList.remove('fade-out');
+                        malwareBanner.classList.remove('show');
+                    }, 600);
+                }, 900);
+            }
+        });
+
+        leakItems.forEach((item) => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('scrubbed')) return;
+                item.classList.add('scrubbed');
+                sanitized.add(item.dataset.key);
+                playSfx(scrubSfx);
+
+                if (sanitized.size === leakItems.length) {
+                    victoryLayer.classList.add('show');
+                    pulse.classList.add('active');
+                    playSfx(successSfx);
+                }
+            });
+        });
+
+        continueBtn.addEventListener('click', () => {
+            tipModal.style.display = 'flex';
+        });
+
+        resetBtn.addEventListener('click', () => {
+            window.location.href = 'page0.html';
+        });
+    </script>
+</body>
+</html>

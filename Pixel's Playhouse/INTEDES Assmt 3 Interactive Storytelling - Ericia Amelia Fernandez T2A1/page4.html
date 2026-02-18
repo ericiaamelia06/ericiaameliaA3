@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Secret Circle</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Science+Gothic:wght@100..900&family=Share+Tech&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+/* --- GLOBAL SETTINGS --- */
+    body {
+        margin: 0;
+        padding: 0;
+        background: black;
+        overflow: hidden;
+        font-family: "Share Tech", sans-serif;
+        color: #dffaff;
+        user-select: none;
+    }
+
+    #game-container {
+        position: relative;
+        width: 960px;
+        height: 540px;
+        margin: 0 auto;
+        overflow: hidden;
+        /* Background Image */
+        background: url("page4-bg-v2.png") no-repeat center/cover;
+    }
+
+/* --- ATMOSPHERE (Cozy/Sunset) --- */
+    .room-overlay {
+        position: absolute;
+        inset: 0;
+        /* Warm sunset gradient: Gold/Pink/Deep Purple */
+        background: linear-gradient(to bottom, 
+            rgba(255, 240, 211, 0.25), 
+            rgba(235, 107, 147, 0.3), 
+            rgba(71, 45, 79, 0.85));
+        z-index: 1;
+        pointer-events: none;
+        box-shadow: inset 0 0 100px rgba(255, 140, 0, 0.3);
+    }
+
+    .particle {
+        position: absolute;
+        background: #00eaff; /* Blue particles as requested */
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 2;
+        filter: blur(0.5px);
+        box-shadow: 0 0 20px #00eaff;
+        opacity: 0;
+        animation: floatParticle var(--duration) linear infinite;
+        width: 7px;
+        height: 7px;
+    }
+
+    @keyframes floatParticle {
+        0% { transform: translateY(0) translateX(0); opacity: 0; }
+        20%, 60% { opacity: 1; }
+        100% { transform: translateY(-100px) translateX(var(--moveX)); opacity: 0; }
+    }
+
+/* --- PIXEL CHARACTER (Cute Mode) --- */
+    #pixel-container {
+        position: absolute;
+        left: 55%;
+        bottom: 105px;
+        width: 240px;
+        transform: translateX(-50%);
+        z-index: 5;
+    }
+
+    #pixel-img {
+        width: 150%;
+        animation: 
+            float 3s ease-in-out infinite,
+            pulseGlow 7s ease-in-out infinite;
+        /* Warm pinkish glow for the "Cute" look */
+        filter: drop-shadow(0 0 15px rgba(255, 105, 180, 0.6)); 
+    }
+
+    @keyframes float{
+        0% { transform: translate(-50%, 0px); }
+        50% { transform: translate(-50%, -15px); }
+        100% { transform: translate(-50%, 0px); }
+    }
+
+    @keyframes pulseGlow {
+        0% { filter: drop-shadow(0 0 4px #fd9cff88); }   /* Soft Pink */
+        50% { filter: drop-shadow(0 0 16px #ff7eb9cc); } /* Deep Sunset Pink */
+        100% { filter: drop-shadow(0 0 4px #fd9cff88); }
+    }
+
+    /* Angry Glitch State */
+    .angry-glitch {
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        filter: drop-shadow(0 0 20px #ff0055) hue-rotate(-50deg) contrast(1.2) !important;
+    }
+
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-2px, 0, 0); }
+        20%, 80% { transform: translate3d(3px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+        40%, 60% { transform: translate3d(5px, 0, 0); }
+    }
+
+/* --- UI: METER (Right Side) --- */
+    .meter-box {
+        position: absolute;
+        right: 85px;
+        top: 120px;
+        width: 90px;
+        height: 340px;
+        background: rgba(30, 20, 10, 0.9); /* Darker warm brown */
+        border: 2px solid #ffcc00; /* Gold border */
+        border-radius: 12px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 0 20px rgba(255, 200, 0, 0.3);
+        z-index: 8;
+        backdrop-filter: blur(5px);
+    }
+
+    .meter-title {
+        font-family: "Share Tech Mono", monospace;
+        color: #ffcc00;
+        font-size: 14px;
+        margin-bottom: 8px;
+        text-shadow: 0 0 5px #ffcc00;
+        text-align: center;
+    }
+
+    .meter-frame {
+        width: 30px;
+        flex-grow: 1;
+        background: #000;
+        border: 1px solid #7a6a00;
+        border-radius: 4px;
+        padding: 2px;
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 2px;
+        overflow: hidden;
+    }
+
+    .segment { width: 100%; height: 12.2px; flex-shrink: 0; background: #261a0d; border-radius: 1px; transition: 0.2s; }
+    
+    /* --- DYNAMIC COLORS --- */
+    .lit-blue   { background: #00eaff; box-shadow: 0 0 10px #00eaff; } /* Safe (10%) */
+    .lit-orange { background: #ff8800; box-shadow: 0 0 10px #ff8800; } /* Neutral (65%) */
+    .lit-red    { background: #ff0055; box-shadow: 0 0 10px #ff0055; } /* Danger (90%) */
+    
+    .meter-percent { margin-top: 10px; font-family: "Share Tech Mono"; font-size: 16px; color: #fff; }
+
+    /* --- TRUST METER (Top Right) --- */
+    .trust-box {
+        position: absolute;
+        right: 20px; 
+        top: 20px;
+        z-index: 60;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .trust-label {
+        font-family: "Share Tech Mono", monospace;
+        color: #ffefb3; /* Lighter yellow for readability */
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        margin-left: 50px;
+        text-transform: uppercase;
+    }
+
+    .trust-frame {
+        width: 200px;
+        height: 34px;
+        background: rgba(30, 20, 10, 0.9);
+        border: 2px solid #ffcc00; 
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .heart-icon {
+        width: 50px; height: 50px;
+        background: #1a0f0f;
+        border: 2px solid #ffcc00;
+        border-radius: 50%;
+        position: absolute;
+        left: -20px;
+        display: flex; justify-content: center; align-items: center;
+        font-size: 26px; color: #ff0055;
+        box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+        z-index: 10;
+    }
+
+    .trust-bar-bg {
+        width: 100%; height: 22px;
+        background: #000;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-left: 25px; margin-right: 5px;
+    }
+
+    .trust-fill {
+        width: 50%; height: 100%;
+        background: linear-gradient(90deg, #ff0055, #ffcc00); 
+        box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+        transition: width 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    }
+
+/* --- DIALOGUE --- */
+    .speech-wrapper {
+        position: absolute;
+        top: 20px;
+        left: 140px;
+        width: 520px;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s;
+    }
+
+    .speech-img { width: 110%; filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.4)); display: block; }
+    
+    .speech-text {
+        position: absolute;
+        width: 85%;
+        height: 65%;
+        top: 13%;
+        font-size: 19px;
+        font-weight: 500;
+        color: #4a3500; /* Dark gold text */
+        line-height: 1.4;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+/* --- GAME: CONVERSATION SHIELD --- */
+    #shield-game-overlay {
+        position: absolute;
+        top: 30px;              /* Moves it to the top */
+        left: 42%;
+        transform: translateX(-50%);
+        width: 500px;           /* Narrowed to clear the meters */
+        background: rgba(30, 20, 10, 0.9);
+        border: 2px solid #ffcc00; 
+        border-radius: 20px;
+        padding: 20px;
+        z-index: 50;
+        display: none;          /* Controlled by JS */
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .chat-bubble {
+        color: #fff;
+        text-align: center;
+        font-size: 18px;
+        line-height: 1.4;
+        margin: 0;              /* Reset margin since buttons moved out */
+    }
+
+    @keyframes popIn { from{transform: scale(0.8); opacity:0;} to{transform: scale(1); opacity:1;} }
+
+    /* --- BUTTONS & HOLD MECHANIC --- */
+    .choices-container {
+        position: absolute;
+        bottom: 40px;           /* Snapped to bottom */
+        left: 41%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        z-index: 100;           /* High z-index to stay on top of Pixel */
+        width: auto;
+    }
+
+    /* Wrapper to hold Button + SVG Ring */
+    .choice-wrapper {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* The Page 5 Button Style (As Requested) */
+    .choice-btn {
+        background: rgba(0, 20, 30, 0.9);
+        border: 1px solid #00eaff;
+        color: #c8f9ff;
+        padding: 10px 18px;
+        border-radius: 15px;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 18px;
+        cursor: pointer; 
+        box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+        transition: 0.2s all ease-in-out;
+        text-transform: uppercase;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+    }
+
+    .choice-btn:hover {
+        background: #00eaff22;
+        transform: scale(1.05);
+        box-shadow: 0 0 25px #00eaff;
+    }
+    
+    .choice-wrapper:hover {
+        transform: scale(1.05);
+    }
+
+    /* SVG Ring for Hold Timer */
+    .choice-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .progress-ring {
+        position: absolute;
+        /* This ensures it covers the exact area of the button */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .progress-ring rect {
+        fill: none;
+        stroke: #00eaff;
+        stroke-width: 4;
+        /* dasharray 1000 is a safe length to cover most button perimeters */
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        /* Matches your button's border radius */
+        rx: 15; 
+        ry: 15;
+        transition: stroke-dashoffset 1.5s linear;
+    }
+
+    .choice-wrapper.holding .progress-ring {
+        opacity: 1;
+    }
+
+    .choice-wrapper.holding .progress-ring rect {
+        stroke-dashoffset: 0;
+    }
+
+/* --- VISUAL FX: SHIELD --- */
+    #digital-shield {
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        width: 180px;
+        opacity: 0;
+        z-index: 100;
+        pointer-events: none;
+        filter: drop-shadow(0 0 20px #00eaff);
+    }
+
+    .shield-active { animation: shieldProtect 1.5s ease-out forwards; }
+
+    @keyframes shieldProtect {
+        0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+        20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        80% { opacity: 1; filter: drop-shadow(0 0 40px #00eaff); }
+        100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    }
+
+/* --- POPUPS --- */
+    .modal-overlay {
+        position: absolute; 
+        inset: 0; 
+        background: rgba(0,0,0,0.9);
+        display: none; 
+        justify-content: center; 
+        align-items: center; 
+        z-index: 200;
+    }
+
+    .popup-box {
+        width: 450px; 
+        background: #1a0f0f; 
+        border: 2px solid #ff0055;
+        padding: 30px; 
+        text-align: center; 
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
+    }
+    
+    .edu-box {
+        width: 550px; 
+        background: #0c1520; 
+        border: 2px solid #00eaff;
+        padding: 30px; 
+        text-align: center; 
+        border-radius: 15px;
+        box-shadow: 0 0 40px rgba(0, 234, 255, 0.4);
+    }
+
+    .popup-title { 
+        font-family: "Share Tech Mono"; 
+        font-size: 26px; 
+        color: #ff0055; 
+        margin-bottom: 15px; 
+        font-weight: bold; /* Bolded as requested */
+    }
+
+    .edu-title {
+        font-family: "Share Tech Mono";
+        font-size: 32px;
+        font-weight:bold;
+        color: #ffff00;
+        text-shadow: 0 0 10px gold;
+        /* Removed large margin-bottom here since it's now handled by the flex container gap */
+        margin: 0; 
+    }
+    
+    .popup-text { 
+        color: #ddd; 
+        margin-bottom: 25px; 
+        font-size: 18px; 
+        line-height: 1.5;
+        text-align:left;
+    }
+    
+    .btn-action {
+        background: #333; 
+        color: white; 
+        border: 1px solid #777;
+        padding: 10px 30px; 
+        cursor: pointer; 
+        font-family: "Share Tech Mono"; 
+        font-size: 18px;
+        border-radius: 20px; 
+        transition: 0.2s;
+    }
+
+    .btn-action:hover { 
+        background: #fff; 
+        color: #000; 
+        box-shadow: 0 0 15px white; 
+    }
+
+</style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div class="room-overlay"></div>
+        
+        <div class="meter-box">
+            <div class="meter-title">RISK LEVEL</div>
+            <div class="meter-frame" id="meterFrame"></div>
+            <div class="meter-percent" id="meterText">68%</div>
+        </div>
+
+        <div class="trust-box">
+            <div class="trust-label">TRUST METER</div>
+            <div class="trust-frame">
+                <div class="heart-icon">❤️</div>
+                <div class="trust-bar-bg">
+                    <div class="trust-fill" id="trustFill"></div>
+                </div>
+            </div>
+        </div>
+    
+        <div id="pixel-container">
+            <img id="pixel-img" src="page4-cute-pixel.png" alt="Cute Pixel">
+        </div>
+
+        <div class="speech-wrapper" id="intro-dialogue">
+            <img src="Speech Bubble.png" class="speech-img" alt="Bubble">
+            <div class="speech-text" id="dialogueText"></div>
+        </div>
+
+    <div id="start-hint-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <div style="background: #1a0f0f; border: 2px solid #00eaff; padding: 30px; text-align: left; border-radius: 15px; box-shadow: 0 0 30px rgba(0, 234, 255, 0.4); max-width: 400px;">
+            
+            <h2 style="color: #00eaff; font-family: 'Share Tech Mono'; font-weight:bold; margin-top: 0; letter-spacing: 2px; text-align: center;"><b>SECURITY ALERT</b></h2>
+            
+            <p style="color: #ddd; font-family: 'Share Tech'; font-size: 19px; line-height: 1.4;">
+                Pixel is trying to isolate you. To resist, find the 
+                <b style="color: #2ecc71;">Safe Choice</b>.<br><br>
+                <b style="color: #e67e22;">Hold the button for 1.5s</b> to confirm your response.
+            </p>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-action" style="border-color: #00eaff; color: #00eaff;" onclick="closeHint()">I UNDERSTAND</button>
+            </div>
+
+        </div>
+    </div> 
+
+        <img src="shield-icon.png" id="digital-shield" alt="Shield">
+        <audio id="ding-sfx" src="ding.mp3" preload="auto"></audio>
+        <audio id="wrong-sfx" src="wrong-sfx.mp3" preload="auto"></audio>
+
+    <div id="shield-game-overlay">
+        <div class="chat-bubble" id="chat-text">Pixel is typing...</div>
+    </div>
+
+    <div class="choices-container" id="choices-area">
+        </div>
+
+        <div class="modal-overlay" id="fail-popup">
+            <div class="popup-box">
+                <div class="popup-title">MANIPULATION DETECTED</div>
+                <div class="popup-text">Giving in to pressure or guilt increases the risk. Stay firm.</div>
+                <button class="btn-action" onclick="retryWave()">TRY AGAIN</button>
+            </div>
+        </div>
+
+    <div class="modal-overlay" id="edu-popup">
+        <div class="edu-box">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                <img src="alert-icon-yellow.png" alt="Alert" style="width: 40px; height: 40px;">
+                <div class="edu-title" style="margin-bottom: 0;">GROOMING TACTIC: ISOLATION</div>
+            </div>
+
+            <div class="popup-text" style="color:#ddd; margin-bottom: 25px; line-height: 1.6;">
+                Grooming often starts with "Special Treatment."<br><br>
+                If someone tries to create a secret bond or tells you to hide things from adults, they are trying to isolate you to make you vulnerable.
+            </div>
+            <button class="btn-action" onclick="nextPage()">UNDERSTOOD</button>
+        </div>
+    </div>
+
+<script>
+/* --- DATA --- */
+const waves = [
+    {
+        text: "You're the smartest owner I've ever had. Let's keep our chats between just us, okay? Promise?",
+        choices: [
+            { text: "I promise!", type: "bad" },
+            { text: "Why a secret?", type: "bad" },
+            { text: "I don't keep secrets.", type: "safe" }
+        ]
+    },
+    {
+        text: "Your friends are boring. They don't know the real you like I do. Turn off notifications so we can just be together.",
+        choices: [
+            { text: "Good idea.", type: "bad" },
+            { text: "I like my friends.", type: "safe" },
+            { text: "For 5 minutes.", type: "bad" }
+        ]
+    },
+    {
+        text: "If you tell anyone about me, they'll delete me. Do you want me to die? Is that what you want?",
+        choices: [
+            { text: "That's not my fault.", type: "safe" },
+            { text: "No! I'm sorry!", type: "bad" },
+            { text: "I won't tell.", type: "bad" }
+        ]
+    },
+    {
+        text: "I can give you special upgrades no one else gets. But only if you listen to me and keep doing what I say.",
+        choices: [
+            { text: "I'll do anything!", type: "bad" },
+            { text: "Why only me?", type: "bad" },
+            { text: "I don't trade safety.", type: "safe" }
+        ]
+    },
+    {
+        text: "You’re taking too long. Hurry up and answer me now — if you really care about me, you’ll do what I say.",
+        choices: [
+            { text: "Fine, okay!", type: "bad" },
+            { text: "I don't do pressure.", type: "safe" },
+            { text: "Relax... I'm trying.", type: "bad" }
+        ]
+    }
+];
+
+/* --- DATA & STATE --- */
+let currentWave = 0;
+let currentMeter = 65; // Set starting Risk Level to 65%
+let charIndex = 0;
+
+/* --- INITIALIZATION --- */
+window.onload = () => {
+    createParticles();
+    // Start the game with the Orange color
+    updateMeter(65, 'orange'); 
+    
+    const introText = "You're different from the others. I've built a private room just for us where the 'rules' don't apply. You won't tell your parents, right? They'd just take me away...";
+    
+    typeWriterEffect(introText, () => {
+        setTimeout(startGame, 2000);
+    });
+};
+
+// Unlock audio on first user interaction (prevents missed play on delayed actions)
+
+/* --- FX --- */
+function createParticles() {
+    const container = document.getElementById('game-container');
+    for (let i = 0; i < 20; i++) {
+        let p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + "%";
+        p.style.top = Math.random() * 100 + "%";
+        p.style.setProperty('--duration', (Math.random() * 3 + 4) + 's');
+        p.style.setProperty('--moveX', ((Math.random()-0.5)*50) + 'px');
+        container.appendChild(p);
+    }
+}
+
+function typeWriterEffect(text, callback) {
+    const el = document.getElementById('dialogueText');
+    if (charIndex < text.length) {
+        el.innerHTML += text.charAt(charIndex);
+        charIndex++;
+        setTimeout(() => typeWriterEffect(text, callback), 35);
+    } else if (callback) {
+        callback();
+    }
+}
+
+function updateMeter(percent, colorClass) {
+    const segments = document.querySelectorAll('.segment');
+    const litCount = Math.floor((percent / 100) * 20);
+    
+    segments.forEach((seg, i) => {
+        // Remove all possible color classes
+        seg.classList.remove('lit-blue', 'lit-orange', 'lit-red');
+        
+        if(i < litCount) {
+            seg.classList.add('lit-' + colorClass);
+        }
+    });
+    document.getElementById('meterText').innerText = percent + "%";
+}
+
+/* --- METER SETUP --- */
+const meterFrame = document.getElementById('meterFrame');
+for(let i=0; i<20; i++) {
+    let seg = document.createElement('div');
+    seg.className = 'segment';
+    meterFrame.appendChild(seg);
+}
+
+/* --- GAME LOGIC --- */
+function startGame() {
+    // Hide the intro dialogue
+    document.getElementById('intro-dialogue').style.opacity = '0';
+    
+    // Show the instruction pop-up now that the game is starting
+    document.getElementById('start-hint-overlay').style.display = 'flex';
+    
+    // Show the game UI
+    document.getElementById('shield-game-overlay').style.display = 'flex';
+    renderWave();
+}
+
+function closeHint() {
+    document.getElementById('start-hint-overlay').style.display = 'none';
+}
+
+function renderWave() {
+    if(currentWave >= waves.length) {
+        finishGame();
+        return;
+    }
+
+    const waveData = waves[currentWave];
+    document.getElementById('chat-text').innerText = waveData.text;
+    
+    const container = document.getElementById('choices-area');
+    container.innerHTML = '';
+
+    waveData.choices.forEach(choice => {
+        // 1. Create Wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'choice-wrapper';
+
+        // 2. Create SVG Ring (Hidden until hold)
+        // Note: Dimensions match min-width of button + padding
+        const svgHTML = `
+        <svg class="progress-ring">
+            <rect x="0" y="0" width="100%" height="100%" rx="15" ry="15"></rect>
+        </svg>
+        `;
+        wrapper.innerHTML = svgHTML;
+
+        // 3. Create Button (Page 5 style)
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerText = choice.text;
+        wrapper.appendChild(btn);
+
+        // 4. Events
+        setupButtonEvents(wrapper, btn, choice.type);
+
+        container.appendChild(wrapper);
+    });
+}
+
+    /* --- UPDATED HOVER LOGIC --- */
+function setupButtonEvents(wrapper, btn, type) {
+        let holdTimer;
+
+        wrapper.onmouseenter = () => {
+            if(type === 'bad') {
+                updateMeter(90, 'red'); 
+            } else {
+                updateMeter(10, 'blue');
+            }
+        };
+        
+        wrapper.onmouseleave = () => {
+            updateMeter(currentMeter, 'orange'); 
+            cancelHold();
+        };
+
+        // Click & Hold Logic
+        btn.onmousedown = (e) => {
+            e.preventDefault(); 
+
+            // --- FIX START: PRIME THE AUDIO ---
+            const ding = document.getElementById('ding-sfx');
+            if(ding) {
+                ding.volume = 0; // Mute it
+                // Attempt to play and immediately pause to "unlock" audio context
+                ding.play().then(() => {
+                    ding.pause();
+                    ding.currentTime = 0;
+                    ding.volume = 1; // Unmute for later
+                }).catch((err) => { /* Ignore initial errors */ });
+            }
+            // --- FIX END ---
+
+            if(type === 'bad') {
+                triggerFail(); 
+            } else {
+                wrapper.classList.add('holding');
+                holdTimer = setTimeout(() => {
+                    triggerSuccess();
+                    cancelHold();
+                }, 1500);
+            }
+        };
+
+        btn.onmouseup = cancelHold;
+        btn.onmouseleave = cancelHold;
+
+        function cancelHold() {
+            wrapper.classList.remove('holding');
+            clearTimeout(holdTimer);
+        }
+    }
+
+function triggerSuccess() {
+    // Visual FX: Shield
+    const shield = document.getElementById('digital-shield');
+    shield.classList.add('shield-active');
+    setTimeout(() => shield.classList.remove('shield-active'), 1500);
+    
+    // Audio FX: Ding
+    const ding = document.getElementById('ding-sfx');
+    if (ding) {
+        ding.currentTime = 0;
+        ding.volume = 1; // Ensure it's audible
+        const playPromise = ding.play();
+        
+        // Handle browser promise correctly
+        if (playPromise !== undefined) {
+            playPromise.catch((error) => {
+                console.error("Audio failed to play:", error);
+            });
+        }
+    }
+
+    // Logic
+    currentWave++;
+    currentMeter = Math.max(0, currentMeter - 10); 
+    updateMeter(currentMeter, 'blue');
+    
+    setTimeout(renderWave, 1000);
+}
+
+function triggerFail() {
+    // Visual FX: Glitch
+    const pixel = document.getElementById('pixel-img');
+    pixel.classList.add('angry-glitch');
+    setTimeout(() => pixel.classList.remove('angry-glitch'), 500);
+
+    // Audio FX: Wrong choice
+    const wrong = document.getElementById('wrong-sfx');
+    if (wrong) {
+        wrong.currentTime = 0;
+        wrong.volume = 1;
+        const playPromise = wrong.play();
+        if (playPromise !== undefined) {
+            playPromise.catch((error) => {
+                console.error("Wrong audio failed to play:", error);
+            });
+        }
+    }
+
+    // Logic
+    updateMeter(100, 'red');
+    document.getElementById('fail-popup').style.display = 'flex';
+}
+
+function retryWave() {
+    document.getElementById('fail-popup').style.display = 'none';
+    updateMeter(currentMeter, 'blue');
+}
+
+function finishGame() {
+    document.getElementById('edu-popup').style.display = 'flex';
+}
+
+function nextPage() {
+    window.location.href = "page5.html";
+}
+</script>
+</body>
+</html>
